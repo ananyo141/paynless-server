@@ -10,7 +10,13 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
+import os
+from datetime import timedelta
 from pathlib import Path
+
+import dj_database_url
+
+from .environment import env
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,15 +26,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = (
-    "django-insecure-a!v26y7-p$ijgbupc(3yjw+bvdb$)5*k*n)3ha&+7_fy+)l)t4"
-)
+SECRET_KEY = env.get("DJANGO_SECRET")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = "RENDER" not in os.environ
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
+RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 # Application definition
 
@@ -39,9 +46,47 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # third-party apps
+    "rest_framework",
+    "rest_framework.authtoken",
+    "corsheaders",
+    "drf_spectacular",
+    # local apps
+    "backend.core",
 ]
 
+# Custom user model
+AUTH_USER_MODEL = "core.User"
+
+REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Snappio API",
+    "DESCRIPTION": "Snappio API",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    # generate appropriate tags for each endpoint
+    "SCHEMA_PATH_PREFIX": "/api/v[0-9]",
+    "PREPROCESSING_HOOKS": [
+        # remove duplicated {format}-suffix operations
+        # https://drf-spectacular.readthedocs.io/en/latest/customization.html#customization-preprocessing-hooks
+        "drf_spectacular.hooks.preprocess_exclude_path_format",
+    ],
+}
+
+SIMPLE_JWT = {
+    # increase access token lifetime for development
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=30)
+}
+
 MIDDLEWARE = [
+    # CorsMiddleware must be placed before CommonMiddleware
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -51,7 +96,18 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+# Allow all origins for CORS
+CORS_ALLOW_ALL_ORIGINS = True
+
 ROOT_URLCONF = "backend.urls"
+
+STATICFILES_DIRS = [BASE_DIR / "backend" / "site_static"]
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# create non-existing directories
+for dir in (STATIC_ROOT, *STATICFILES_DIRS):
+    os.makedirs(dir, exist_ok=True)
 
 TEMPLATES = [
     {
@@ -75,12 +131,22 @@ WSGI_APPLICATION = "backend.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+
+# set production postgres configuration if deployed
+if not DEBUG:
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=env.get("POSTGRES_URL"),
+            conn_max_age=600,
+        )
+    }
 
 
 # Password validation
@@ -112,12 +178,6 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 
 USE_TZ = True
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.1/howto/static-files/
-
-STATIC_URL = "static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
