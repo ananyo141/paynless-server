@@ -4,7 +4,7 @@
 set -o errexit
 
 pip install --upgrade poetry
-poetry install
+poetry install --only main
 
 poetry run ./manage.py collectstatic --no-input
 poetry run ./manage.py makemigrations core
