@@ -2,11 +2,11 @@ services:
   api:
     container_name: paynless-backend
     build: .
-    command: poetry run daphne -b 0.0.0.0 backend.asgi:application
+    command: poetry run gunicorn -b 0.0.0.0 backend.wsgi:application
     volumes:
       - ./:/usr/src/app
     ports:
-      - 80:8000
+      - 8000:8000
     env_file:
       - ./.env
     environment:
