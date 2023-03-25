@@ -66,8 +66,8 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "Snappio API",
-    "DESCRIPTION": "Snappio API",
+    "TITLE": "API",
+    "DESCRIPTION": "API",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     # generate appropriate tags for each endpoint
