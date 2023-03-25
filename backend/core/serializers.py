@@ -20,6 +20,7 @@ class UserSerializer(ModelSerializer):
             id=validated_data["id"],
             email=validated_data["email"],
             name=validated_data["name"],
+            avatarUrl=validated_data["avatarUrl"],
             username=validated_data["email"],
             role=validated_data.get("role", Role.USER.value),
         )
