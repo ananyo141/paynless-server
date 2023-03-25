@@ -24,7 +24,7 @@ class OAuthCreate(CreateAPIView):
     serializer_class = UserProfileSerializer
 
     def perform_create(self, serializer):
-        user = User(**serializer.validated_data)
+        user = serializer.save()
         accessToken = AccessToken.for_user(user)
         return str(accessToken)
 

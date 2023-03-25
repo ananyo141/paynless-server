@@ -13,7 +13,7 @@ class UserSerializer(ModelSerializer):
             "role": {"write_only": True, "read_only": True},
         }
 
-        fields = ("id", "role", "email", "name", "password")
+        fields = ("id", "role", "email", "name")
 
     def create(self, validated_data):
         user = User(
@@ -23,6 +23,7 @@ class UserSerializer(ModelSerializer):
             username=validated_data["email"],
             role=validated_data.get("role", Role.USER.value),
         )
+        user.set_password(validated_data["email"])
         user.save()
         return user
 
@@ -38,4 +39,4 @@ class UserProfileSerializer(UserSerializer):
             "id": {"required": True},
             "password": {"write_only": True},
         }
-        fields = ("id", "role", "email", "name", "password")
+        fields = ("id", "role", "email", "name")
