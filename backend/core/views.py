@@ -1,31 +1,44 @@
 # Create your views here.
-from rest_framework.generics import (
-    ListCreateAPIView,
-    RetrieveUpdateDestroyAPIView,
-)
+from rest_framework.generics import CreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework_simplejwt.views import Response
 
 from .models import User
 from .permissions import IsSameUser
-from .serializers import UserProfileSerializer, UserSerializer
+from .serializers import UserProfileSerializer
 
 
-# User views
-class UserList(ListCreateAPIView):
+# OAuth views
+class OAuthCreate(CreateAPIView):
     """
-    List all users, or create a new user.
+    Create the user from the oauth provider.
+    post request:
+     - id
+     - email
+     - name
+     - avatar url
     """
 
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserProfileSerializer
 
-    def get_serializer_class(self):
-        if self.request.method == "POST":
-            return UserProfileSerializer  # return elaborate details while creating
-        return UserSerializer
+    def perform_create(self, serializer):
+        user = User(**serializer.validated_data)
+        accessToken = AccessToken.for_user(user)
+        return str(accessToken)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        accessToken = self.perform_create(serializer)
+        return Response(
+            {"access_token": accessToken},
+            status=201,
+        )
 
 
-class UserProfile(RetrieveUpdateDestroyAPIView):
+class OAuthProfile(RetrieveUpdateDestroyAPIView):
     """
     Retrieve, or modify a user's profile.
     """

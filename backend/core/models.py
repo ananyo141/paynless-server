@@ -7,23 +7,24 @@ from django.utils.translation import gettext_lazy as _
 
 class Role(Enum):
     ADMIN = "admin"
-    CLIENT = "client"
-    SHOPKEEPER = "shopkeeper"
+    USER = "user"
+    BUSINESS = "business"
 
 
 # Create your models here.
 class User(AbstractUser):
-    username = models.CharField(max_length=50, unique=True)
+    id = models.CharField(max_length=100, primary_key=True, unique=True)
     email = models.EmailField(_("email address"), unique=True)
     name = models.CharField(max_length=60)
+    avatar = models.URLField(blank=True, null=True)
     role = models.CharField(
         max_length=50,
         choices=[(role.value, role.name) for role in Role],
-        default=Role.CLIENT.value,
+        default=Role.USER.value,
     )
+    username = models.CharField(max_length=100, unique=True)
 
-    # USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ["email", "name"]
+    REQUIRED_FIELDS = ["id", "name"]
 
     def __str__(self):
         return f"{self.email}"
