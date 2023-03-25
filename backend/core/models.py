@@ -16,7 +16,7 @@ class User(AbstractUser):
     id = models.CharField(max_length=100, primary_key=True, unique=True)
     email = models.EmailField(_("email address"), unique=True)
     name = models.CharField(max_length=60)
-    avatar = models.URLField(blank=True, null=True)
+    avatarUrl = models.URLField(blank=True, null=True)
     role = models.CharField(
         max_length=50,
         choices=[(role.value, role.name) for role in Role],

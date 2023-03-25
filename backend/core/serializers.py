@@ -1,6 +1,6 @@
 from rest_framework.serializers import ModelSerializer
 
-from .models import Role, User
+from .models import User
 
 
 class UserSerializer(ModelSerializer):
@@ -13,17 +13,13 @@ class UserSerializer(ModelSerializer):
             "role": {"write_only": True, "read_only": True},
         }
 
-        fields = ("id", "role", "email", "name")
+        fields = ("id", "role", "email", "name", "avatarUrl")
 
     def create(self, validated_data):
-        user = User(
-            id=validated_data["id"],
-            email=validated_data["email"],
-            name=validated_data["name"],
-            username=validated_data["email"],
-            role=validated_data.get("role", Role.USER.value),
+        user = User(**validated_data)
+        user.set_password(
+            validated_data.get("password", validated_data["email"])
         )
-        user.set_password(validated_data["email"])
         user.save()
         return user
 
@@ -39,4 +35,4 @@ class UserProfileSerializer(UserSerializer):
             "id": {"required": True},
             "password": {"write_only": True},
         }
-        fields = ("id", "role", "email", "name")
+        fields = ("id", "role", "email", "name", "avatarUrl")
