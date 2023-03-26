@@ -26,14 +26,25 @@ class OAuthCreate(CreateAPIView):
     def perform_create(self, serializer):
         user = serializer.save()
         accessToken = AccessToken.for_user(user)
-        return str(accessToken)
+        return accessToken
 
     def create(self, request, *args, **kwargs):
+        try:
+            user = User.objects.get(email=request.data.get("email"))
+        except Exception:
+            user = None
+        if user:
+            accessToken = AccessToken.for_user(user)
+            return Response(
+                {"access_token": str(accessToken)},
+                status=200,
+            )
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         accessToken = self.perform_create(serializer)
+
         return Response(
-            {"access_token": accessToken},
+            {"access_token": str(accessToken)},
             status=201,
         )
 
