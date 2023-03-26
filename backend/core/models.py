@@ -24,6 +24,11 @@ class User(AbstractUser):
     )
     username = models.CharField(max_length=100, unique=True)
 
+    # only for business
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    shopName = models.CharField(max_length=100, blank=True, null=True)
+    shopAddress = models.CharField(max_length=100, blank=True, null=True)
+
     REQUIRED_FIELDS = ["id", "name"]
 
     def __str__(self):
