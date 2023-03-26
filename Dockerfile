@@ -16,3 +16,5 @@ RUN pip install poetry && poetry install --only main ; \
   poetry run ./manage.py collectstatic --no-input ; \
   poetry run ./manage.py makemigrations core ; \
   poetry run ./manage.py migrate
+
+EXPOSE 8000
